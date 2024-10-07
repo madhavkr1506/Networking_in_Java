@@ -6,9 +6,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 
+
+
+import java.sql.*;
+
 public class server_ {
 
     static List<PrintWriter> client_writer_list = new ArrayList<>();
+    static String message = "";
     public static void main(String[] args) {
         try(ServerSocket serverSocket = new ServerSocket(50000)){
             System.out.println("Server is ready to listen on port 50000");
@@ -43,8 +48,11 @@ public class server_ {
                 String inputLine;
                 while ((inputLine = reader.readLine()) != null) {
                     System.out.println("Received: " + inputLine);
+                    message = inputLine;
 
                     broad_casting(inputLine);
+
+                    handle_chat();
 
                 }
 
@@ -70,7 +78,35 @@ public class server_ {
             for(PrintWriter output_writer : client_writer_list){
                 output_writer.println(message);
                 output_writer.flush();
+
             }
         }
+    }
+
+    static void handle_chat(){
+        String dburl = "jdbc:mysql://localhost:3306/";
+        String username = "root";
+        String password = "1234";
+        try(Connection connection = DriverManager.getConnection(dburl,username,password);
+        Statement statement = connection.createStatement()){
+
+            String createdb = "create database if not exists chat";
+            statement.executeUpdate(createdb);
+
+            String usedb = "use chat";
+            statement.executeUpdate(usedb);
+
+            String table = "create table if not exists chat_history (chat_ text)";
+            statement.executeUpdate(table);
+
+            String insert = "insert into chat_history(chat_) values (?)";
+            PreparedStatement preparedStatement = connection.prepareStatement(insert);
+
+            preparedStatement.setString(1, message);
+            preparedStatement.executeUpdate();
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+
     }
 }
