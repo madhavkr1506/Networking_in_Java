@@ -6,31 +6,33 @@ import java.net.Socket;
 
 public class client1 {
     public static void main(String[] args) {
-        try{
+        try {
             Socket clienSocket = new Socket("localhost", 5555);
             System.out.println("client 1 is connecting to server");
+
             BufferedReader consolReader = new BufferedReader(new InputStreamReader(System.in));
             PrintWriter writer = new PrintWriter(clienSocket.getOutputStream(), true);
             BufferedReader reader = new BufferedReader(new InputStreamReader(clienSocket.getInputStream()));
 
             System.out.println(reader.readLine());
+
             String username = consolReader.readLine();
             writer.println(username);
             System.out.println(reader.readLine());
-            String recipents = consolReader.readLine();
-            writer.println(recipents);
 
-            new Thread(()->{
+            new Thread(() -> {
                 String serverMessage;
                 try {
-                    while((serverMessage = reader.readLine()) != null){
+                    while ((serverMessage = reader.readLine()) != null) {
                         System.out.println(serverMessage);
                     }
                 } catch (IOException e) {
-                    
+
                     e.printStackTrace();
                 }
             }).start();
+
+            System.out.println("To chat, use '@recipient message' format.");
 
             String inputLine;
             while ((inputLine = consolReader.readLine()) != null) {
@@ -42,7 +44,7 @@ public class client1 {
             reader.close();
             clienSocket.close();
 
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
