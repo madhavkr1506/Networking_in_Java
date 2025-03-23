@@ -1,23 +1,39 @@
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyStore;
 import java.util.HashMap;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 
 public class server {
 
     private static HashMap<String, ClientHandler> clientMap = new HashMap<>();
 
-    @SuppressWarnings("resource")
     public static void main(String[] args) {
         try{
-            ServerSocket server_socket = new ServerSocket(5555);
-            System.out.println("server is listening on port 5555");
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(new FileInputStream("keystore.jks"), "password".toCharArray());
+
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            keyManagerFactory.init(keyStore, "password".toCharArray());
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
+
+            SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
+            
+            SSLServerSocket serverSocket = (SSLServerSocket)sslServerSocketFactory.createServerSocket(5555);
+            
             
             while (true) {
-                Socket socket = server_socket.accept();
+                Socket socket = serverSocket.accept();
                 new ClientHandler(socket).start();
             }
         }catch(Exception e){

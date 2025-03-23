@@ -1,13 +1,33 @@
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.Socket;
+import java.security.KeyStore;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 
 public class client2 {
     public static void main(String[] args) {
         try {
-            Socket clienSocket = new Socket("localhost", 5555);
+
+            KeyStore trustStore = KeyStore.getInstance("JKS");
+            trustStore.load(new FileInputStream("truststore.jks"), "password".toCharArray());
+
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+
+            trustManagerFactory.init(trustStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
+
+            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            SSLSocket clienSocket = (SSLSocket) sslSocketFactory.createSocket("localhost", 5555);
+
+            
             System.out.println("client 2 is connecting to server");
 
             BufferedReader consolReader = new BufferedReader(new InputStreamReader(System.in));
